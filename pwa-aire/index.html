@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f172a">
+  <title>Control Aire Mabe - POCO X3 Pro</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card: #151d2f;
+      --card-border: #1e293b;
+      --lcd-bg: #8ba888;
+      --lcd-text: #1a2717;
+      --primary: #38bdf8;
+      --power-on: #22c55e;
+      --power-off: #ef4444;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 12px;
+    }
+
+    .remote-case {
+      width: 100%;
+      max-width: 380px;
+      background: linear-gradient(180deg, #1e2538 0%, #111726 100%);
+      border: 1px solid #2a344d;
+      border-radius: 36px;
+      padding: 22px 18px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Brand Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 8px;
+    }
+    .brand-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #94a3b8;
+      text-transform: uppercase;
+    }
+    .status-badge {
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: #1e293b;
+      color: #38bdf8;
+      border: 1px solid #334155;
+    }
+
+    /* LCD Screen Display */
+    .lcd-screen {
+      background: var(--lcd-bg);
+      color: var(--lcd-text);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.1);
+      border: 2px solid #556b53;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 130px;
+      transition: all 0.25s ease;
+    }
+    .lcd-screen.off {
+      background: #3e4a3d;
+      opacity: 0.45;
+    }
+    .lcd-top {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 800;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+    }
+    .lcd-middle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+    }
+    .lcd-temp {
+      font-size: 3.5rem;
+      font-weight: 900;
+      line-height: 1;
+      display: flex;
+      align-items: flex-start;
+    }
+    .lcd-temp span {
+      font-size: 1.4rem;
+      margin-top: 4px;
+    }
+    .lcd-details {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-align: right;
+    }
+    .lcd-bottom {
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px dashed rgba(26, 39, 23, 0.4);
+      padding-top: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    /* Keypad Grid */
+    .keypad {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    .btn {
+      background: #1f2a40;
+      border: 1px solid #334260;
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.85rem;
+      border-radius: 16px;
+      padding: 14px 10px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      transition: all 0.1s active;
+    }
+    .btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+      background: #283754;
+    }
+
+    /* Special Buttons */
+    .btn-power {
+      background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+      color: #000;
+      font-weight: 800;
+      font-size: 1rem;
+      border: none;
+      box-shadow: 0 4px 14px rgba(234, 179, 8, 0.4);
+    }
+    .btn-power.is-off {
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-temp {
+      background: #23314d;
+      font-size: 1.1rem;
+      font-weight: 800;
+      padding: 16px 10px;
+    }
+
+    .btn-primary {
+      background: #1e3a5f;
+      border-color: #2563eb;
+      color: #60a5fa;
+    }
+
+    .pill-indicator {
+      font-size: 0.65rem;
+      color: #94a3b8;
+    }
+
+    /* Console log bar */
+    .log-bar {
+      background: #0a0e17;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-family: monospace;
+      font-size: 0.68rem;
+      color: #38bdf8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .install-pwa-btn {
+      display: none;
+      background: #0284c7;
+      color: white;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      padding: 10px;
+      cursor: pointer;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="remote-case">
+    <!-- Header -->
+    <div class="header">
+      <span class="brand-title">mabe</span>
+      <span id="bridgeBadge" class="status-badge">IR Blaster Listo</span>
+    </div>
+
+    <!-- LCD Display -->
+    <div id="lcd" class="lcd-screen">
+      <div class="lcd-top">
+        <span id="lcdMode">COOL (FRÍO)</span>
+        <span id="lcdPower">ENCENDIDO</span>
+      </div>
+      <div class="lcd-middle">
+        <div class="lcd-temp">
+          <span id="lcdTempNum">24</span><span>°C</span>
+        </div>
+        <div class="lcd-details">
+          <div id="lcdFan">VENT: AUTO</div>
+          <div id="lcdSwing">SWING: ACTIVO</div>
+        </div>
+      </div>
+      <div class="lcd-bottom">
+        <span id="lcdTurbo">TURBO: OFF</span>
+        <span id="lcdEco">ECO: OFF</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="keypad">
+      <!-- Power & Turbo Row -->
+      <div class="row">
+        <button id="btnTurbo" class="btn" onclick="toggleTurbo()">
+          <span>TURBO</span>
+          <span class="pill-indicator">QUIET</span>
+        </button>
+        <button id="btnPower" class="btn btn-power" onclick="togglePower()">
+          <span id="powerLabel">ENCENDER</span>
+          <span class="pill-indicator">ON / OFF</span>
+        </button>
+      </div>
+
+      <!-- Mode & Eco Row -->
+      <div class="row">
+        <button class="btn" onclick="cycleMode()">
+          <span>MODO</span>
+          <span id="btnModeSub" class="pill-indicator">COOL</span>
+        </button>
+        <button class="btn" onclick="toggleEco()">
+          <span>ECO</span>
+          <span id="btnEcoSub" class="pill-indicator">NORMAL</span>
+        </button>
+        <button class="btn" onclick="cycleFan()">
+          <span>VENTILADOR</span>
+          <span id="btnFanSub" class="pill-indicator">AUTO</span>
+        </button>
+      </div>
+
+      <!-- Temperature Controls -->
+      <div class="row">
+        <button class="btn btn-temp" onclick="adjustTemp(-1)">
+          <span>TEMP ▼</span>
+          <span class="pill-indicator">-1°C</span>
+        </button>
+        <button class="btn btn-temp" onclick="adjustTemp(1)">
+          <span>TEMP ▲</span>
+          <span class="pill-indicator">+1°C</span>
+        </button>
+      </div>
+
+      <!-- Swing & Health Row -->
+      <div class="row">
+        <button class="btn" onclick="toggleSwing()">
+          <span>SWING</span>
+          <span class="pill-indicator">OSCILAR</span>
+        </button>
+        <button class="btn" onclick="setPreset(18)">
+          <span>18°C FRÍO</span>
+          <span class="pill-indicator">MÁXIMO</span>
+        </button>
+        <button class="btn" onclick="setPreset(24)">
+          <span>24°C COMFORT</span>
+          <span class="pill-indicator">ÓPTIMO</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Transmit Log -->
+    <div class="log-bar">
+      <span id="logText">Hex: [0xA6 0x01 0x08 0x01 ...]</span>
+      <span id="pulseCount">163 pulsos</span>
+    </div>
+
+    <!-- PWA Install Button -->
+    <button id="installPwaBtn" class="install-pwa-btn" onclick="installPWA()">
+      📲 Instalar como Aplicación en Teléfono
+    </button>
+  </div>
+
+  <script src="protocol.js"></script>
+  <script>
+    // Audio Beep generator
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeep() {
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(2800, audioCtx.currentTime); // 2.8kHz remote beep
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.12);
+      } catch (e) {}
+    }
+
+    // State
+    const state = {
+      power: true,
+      mode: 'COOL',
+      temp: 24,
+      fan: 'AUTO',
+      swing: true,
+      turbo: false,
+      eco: false
+    };
+
+    const protocol = new MabeAcProtocol();
+    const MODES_LIST = ['COOL', 'DRY', 'FAN', 'HEAT', 'AUTO'];
+    const FANS_LIST = ['AUTO', 'LOW', 'MED', 'HIGH'];
+
+    function updateUI() {
+      const lcd = document.getElementById('lcd');
+      const lcdPower = document.getElementById('lcdPower');
+      const lcdTempNum = document.getElementById('lcdTempNum');
+      const lcdMode = document.getElementById('lcdMode');
+      const lcdFan = document.getElementById('lcdFan');
+      const lcdSwing = document.getElementById('lcdSwing');
+      const lcdTurbo = document.getElementById('lcdTurbo');
+      const lcdEco = document.getElementById('lcdEco');
+      const btnPower = document.getElementById('btnPower');
+      const powerLabel = document.getElementById('powerLabel');
+
+      if (state.power) {
+        lcd.classList.remove('off');
+        lcdPower.textContent = 'ENCENDIDO';
+        btnPower.classList.remove('is-off');
+        powerLabel.textContent = 'APAGAR';
+      } else {
+        lcd.classList.add('off');
+        lcdPower.textContent = 'APAGADO';
+        btnPower.classList.add('is-off');
+        powerLabel.textContent = 'ENCENDER';
+      }
+
+      lcdTempNum.textContent = state.temp;
+      lcdMode.textContent = `${state.mode}`;
+      lcdFan.textContent = `VENT: ${state.fan}`;
+      lcdSwing.textContent = `SWING: ${state.swing ? 'ON' : 'OFF'}`;
+      lcdTurbo.textContent = `TURBO: ${state.turbo ? 'ON' : 'OFF'}`;
+      lcdEco.textContent = `ECO: ${state.eco ? 'ON' : 'OFF'}`;
+
+      document.getElementById('btnModeSub').textContent = state.mode;
+      document.getElementById('btnFanSub').textContent = state.fan;
+      document.getElementById('btnEcoSub').textContent = state.eco ? 'ON' : 'OFF';
+    }
+
+    function transmit() {
+      playBeep();
+      if (navigator.vibrate) navigator.vibrate(35);
+
+      const payload = protocol.buildStatePacket(state);
+      const pulses = protocol.packetToPulses(payload);
+
+      const hexStr = payload.map(b => '0x' + b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+      document.getElementById('logText').textContent = `Hex: [${hexStr}]`;
+      document.getElementById('pulseCount').textContent = `${pulses.length} pulsos`;
+
+      // 1. Si estamos dentro de la app Android con ConsumerIrManager nativo:
+      if (window.AndroidIR && window.AndroidIR.transmit) {
+        window.AndroidIR.transmit(38000, JSON.stringify(pulses));
+        document.getElementById('bridgeBadge').textContent = '✅ IR Emitido';
+        document.getElementById('bridgeBadge').style.borderColor = '#22c55e';
+      } 
+      // 2. Si estamos conectados a un servidor local de red:
+      else {
+        fetch('/api/send-ir', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({frequency: 38000, pulses: pulses, state: state})
+        }).then(() => {
+          document.getElementById('bridgeBadge').textContent = '✅ Enviado por Red';
+        }).catch(() => {
+          document.getElementById('bridgeBadge').textContent = 'Señal Generada (PWA)';
+        });
+      }
+    }
+
+    function togglePower() {
+      state.power = !state.power;
+      updateUI();
+      transmit();
+    }
+
+    function adjustTemp(delta) {
+      if (!state.power) state.power = true;
+      state.temp = Math.max(16, Math.min(30, state.temp + delta));
+      updateUI();
+      transmit();
+    }
+
+    function setPreset(temp) {
+      if (!state.power) state.power = true;
+      state.mode = 'COOL';
+      state.temp = temp;
+      updateUI();
+      transmit();
+    }
+
+    function cycleMode() {
+      const idx = MODES_LIST.indexOf(state.mode);
+      state.mode = MODES_LIST[(idx + 1) % MODES_LIST.length];
+      updateUI();
+      transmit();
+    }
+
+    function cycleFan() {
+      const idx = FANS_LIST.indexOf(state.fan);
+      state.fan = FANS_LIST[(idx + 1) % FANS_LIST.length];
+      updateUI();
+      transmit();
+    }
+
+    function toggleSwing() {
+      state.swing = !state.swing;
+      updateUI();
+      transmit();
+    }
+
+    function toggleTurbo() {
+      state.turbo = !state.turbo;
+      if (state.turbo) state.eco = false;
+      updateUI();
+      transmit();
+    }
+
+    function toggleEco() {
+      state.eco = !state.eco;
+      if (state.eco) state.turbo = false;
+      updateUI();
+      transmit();
+    }
+
+    // Inicializar
+    updateUI();
+
+    // Service Worker & PWA Install
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = document.getElementById('installPwaBtn');
+      if (btn) btn.style.display = 'block';
+    });
+
+    function installPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          deferredPrompt = null;
+          document.getElementById('installPwaBtn').style.display = 'none';
+        });
+      }
+    }
+  </script>
+</body>
+</html>
+

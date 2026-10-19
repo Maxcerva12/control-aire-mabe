@@ -1,0 +1,7 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/", "destination": "/pwa-aire/index.html" },
+    { "source": "/(.*)", "destination": "/pwa-aire/$1" }
+  ]
+}
